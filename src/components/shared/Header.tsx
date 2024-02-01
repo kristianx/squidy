@@ -18,9 +18,13 @@ const StyledHeader = styled.div`
     padding: 0 20px;
     z-index:10;
     box-shadow: 10px 5px 15px rgba(0, 0, 0, 0.05);
-    #main-logo{
+    img#main-logo{
         height: 60px;
         width: 60px;
+        &:hover{
+            scale: 1.1;
+            transition: all 300ms ease-in-out;
+        }
     }
     .header-search{
         padding: 10px;
@@ -68,7 +72,9 @@ const Header = ({ onSearch }) => {
     return (
         <>
             <StyledHeader id="main-nav">
-                <img id="main-logo" src={squidLogo} alt="Logo"/>
+                <NavLink to="/">
+                    <img id="main-logo" src={squidLogo} alt="Logo"/>
+                </NavLink>
                 <input
                     className={"header-search"}
                     type="text"

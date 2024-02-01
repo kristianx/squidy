@@ -1,6 +1,5 @@
 import React from 'react'
 import squidLogo from "../../assets/squid.svg";
-import {Link} from "react-router-dom";
 import styled from "styled-components";
 
 const StyledFooter = styled.div`

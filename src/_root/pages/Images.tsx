@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import ImageItem from "../../components/ImageItem.tsx";
 import styled from "styled-components";
@@ -37,37 +37,45 @@ const Images = () => {
     const [images, setImages] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalImages, setTotalImages] = useState(0);
-    const [imagesPerPage, setImagesPerPage] = useState(10);
+    const [limit, setLimit] = useState(10);
 
     useEffect(() => {
-        // Calculate the start and end indices for the current page
-        const startIndex = (currentPage - 1) * imagesPerPage;
-        const endIndex = startIndex + imagesPerPage;
+        const fetchImages = async () => {
+            try {
+                const response = await axios.get(
+                    `https://jsonplaceholder.typicode.com/photos?_page=${currentPage}&_limit=${limit}`
+                );
+                setImages(response.data);
 
-        // Use Axios to fetch data from the API
-        axios.get('https://jsonplaceholder.typicode.com/photos')
-            .then((response) => {
-                // Update the state with the fetched images for the current page
-                setImages(response.data.slice(startIndex, endIndex));
-                setTotalImages(response.data.length);
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-            });
-    }, [currentPage, imagesPerPage]);
+                const totalCount = response.headers['x-total-count'];
+                setTotalImages(parseInt(totalCount, 10));
+            } catch (error) {
+                console.error('Error fetching images:', error);
+            }
+        };
+        fetchImages();
+    }, [currentPage, limit]);
 
-    // Function to handle page change
-    const handlePageChange = (newPage) => {
-        setCurrentPage(newPage);
-    };
-    const handleSliderChange = (event) => {
-        const newValue = parseInt(event.target.value, 10);
-        setImagesPerPage(newValue);
-        setCurrentPage(1); // Reset the current page when the images per page change
+
+    const handleNextPage = () => {
+        setCurrentPage((prevPage) => prevPage + 1);
     };
 
-    // Calculate the total number of pages based on the number of images
-    const totalPages = Math.ceil(totalImages / imagesPerPage);
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage((prevPage) => prevPage - 1);
+        }
+    };
+
+    const hasNextPage = (currentPage * limit) < totalImages;
+    const hasPrevPage = currentPage > 1;
+
+    const handleLimitChange = (event) => {
+        const newLimit = parseInt(event.target.value, 10);
+        setLimit(newLimit);
+    };
+
+    const totalPages = Math.ceil(totalImages / limit);
 
 
 
@@ -78,11 +86,11 @@ const Images = () => {
                     type="range"
                     min="1"
                     max="50" // You can adjust the max value as needed
-                    value={imagesPerPage}
-                    onChange={handleSliderChange}
-                    onMouseUp={handleSliderChange}
+                    value={limit}
+                    onChange={handleLimitChange}
+                    onMouseUp={handleLimitChange}
                 />
-                <span>{`Images per page: ${imagesPerPage}`}</span>
+                <span>{`Images per page: ${limit}`}</span>
             </div>
             <div className="image-list">
                 {images.map((image) => (
@@ -91,15 +99,13 @@ const Images = () => {
             </div>
             <div className="pagination">
                 <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
+                    onClick={handlePrevPage} disabled={!hasPrevPage}
                 >
                     Previous
                 </button>
                 <span>{`Page ${currentPage} of ${totalPages}`}</span>
                 <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
+                    onClick={handleNextPage} disabled={!hasNextPage}
                 >
                     Next
                 </button>
